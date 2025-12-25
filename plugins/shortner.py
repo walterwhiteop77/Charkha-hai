@@ -19,57 +19,64 @@ def generate_random_alphanumeric():
 
 def get_short(url, client):
 
-    # Check if shortener is enabled
-    shortner_enabled = getattr(client, 'shortner_enabled', True)
-    if not shortner_enabled:
+    # Shortener toggle
+    if not getattr(client, "shortner_enabled", True):
         return url
 
-    # Cache check
+    # Cache
     if url in shortened_urls_cache:
         return shortened_urls_cache[url]
 
+    short_domain = getattr(client, "short_url", SHORT_URL)
+    short_api = getattr(client, "short_api", SHORT_API)
+
     try:
-        alias = generate_random_alphanumeric()
-
-        # Dynamic shortener config
-        short_domain = getattr(client, 'short_url', SHORT_URL)
-        short_api = getattr(client, 'short_api', SHORT_API)
-
-        api_url = f"https://{short_domain}/api"
-
-        # ---- Primary request ----
         response = requests.get(
-            api_url,
+            f"https://{short_domain}/api",
             params={
                 "api": short_api,
-                "url": url,
-                "alias": alias
+                "url": url
             },
             timeout=15
         )
 
+        print("[Shortener RAW]", response.text)
+
         if response.status_code != 200:
-            raise Exception(f"HTTP {response.status_code}")
+            print("[Shortener] HTTP error:", response.status_code)
+            return url
 
         try:
-            rjson = response.json()
+            data = response.json()
         except Exception:
-            raise Exception("Invalid JSON response")
+            print("[Shortener] Non-JSON response")
+            return url
 
-        print("Shortener response:", rjson)
+        print("[Shortener JSON]", data)
 
-        # ---- Universal response parser ----
-        if isinstance(rjson, dict):
+        # ---- UNIVERSAL PARSER ----
+        if isinstance(data, dict):
+
+            # Direct keys
             for key in ("shortenedUrl", "shorturl", "short", "url"):
-                if key in rjson and rjson[key]:
-                    shortened_urls_cache[url] = rjson[key]
-                    return rjson[key]
+                if key in data and data[key] and data[key] != url:
+                    shortened_urls_cache[url] = data[key]
+                    return data[key]
+
+            # Nested data support
+            if "data" in data and isinstance(data["data"], dict):
+                for key in ("shortenedUrl", "shorturl", "short", "url"):
+                    if key in data["data"] and data["data"][key]:
+                        shortened_urls_cache[url] = data["data"][key]
+                        return data["data"][key]
+
+        print("[Shortener] No short URL found")
 
     except Exception as e:
-        print(f"[Shortener Error] {e}")
+        print("[Shortener Exception]", e)
 
-    # Final fallback
     return url
+
 
 #===============================================================#
 
@@ -283,6 +290,7 @@ async def test_shortner(client: Client, query: CallbackQuery):
         msg = f"**❌ ꜱʜᴏʀᴛɴᴇʀ ᴛᴇꜱᴛ ꜰᴀɪʟᴇᴅ!**\n\n**ᴇʀʀᴏʀ:** `{str(e)}`"
     
     await query.message.edit_text(msg, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('◂ ʙᴀᴄᴋ', 'shortner')]]))
+
 
 
 
