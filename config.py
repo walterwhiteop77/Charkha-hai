@@ -8,7 +8,7 @@ OWNER_ID = 6725874739
 
 MSG_EFFECT = 5046509860389126442
 
-SHORT_URL = "arolinks.com" # shortner url 
+SHORT_URL = "https://linkverify.vercel.app/api" # shortner url 
 SHORT_API = "3adca196c74366f9d2991580d3fc459015b8ae36" 
 SHORT_TUT = "https://t.me/How_to_Download_7x/26"
 
