@@ -4,36 +4,36 @@ from logging.handlers import RotatingFileHandler
 # Bot Configuration
 LOG_FILE_NAME = "bot.log"
 PORT = '5010'
-OWNER_ID = 6497757690
+OWNER_ID = 6725874739
 
 MSG_EFFECT = 5046509860389126442
 
-SHORT_URL = "linkshortify.com" # shortner url 
-SHORT_API = "" 
+SHORT_URL = "arolinks.com" # shortner url 
+SHORT_API = "3adca196c74366f9d2991580d3fc459015b8ae36" 
 SHORT_TUT = "https://t.me/How_to_Download_7x/26"
 
 # Bot Configuration
 SESSION = "yato"
-TOKEN = "642712"
-API_ID = ""
-API_HASH = ""
+TOKEN = ""
+API_ID = "23685822"
+API_HASH = "ff0572e13ff2f63a50f6dc707e0c4c9f"
 WORKERS = 5
 
-DB_URI = "mongodb"
-DB_NAME = "yato"
+DB_URI = "mongodb+srv://priyanshukumawat90_db_user:6ScOP71z7U1WBhgG@cluster0.gmchzjb.mongodb.net/?appName=Cluster0"
+DB_NAME = "Cluster0"
 
-FSUBS = [[-1003016571084, True, 10]] # Force Subscription Channels [channel_id, request_enabled, timer_in_minutes]
+FSUBS = [[-1001610198839, True, 10]] # Force Subscription Channels [channel_id, request_enabled, timer_in_minutes]
 # Database Channel (Primary)
 DB_CHANNEL =    # just put channel id dont add ""
 # Multiple Database Channels (can be set via bot settings)
 # DB_CHANNELS = {
-#     "-1002595092736": {"name": "Primary DB", "is_primary": True, "is_active": True},
-#     "-1001234567890": {"name": "Secondary DB", "is_primary": False, "is_active": True}
+#     "-1002759929778": {"name": "Primary DB", "is_primary": True, "is_active": True},
+#     "-1001726493524": {"name": "Secondary DB", "is_primary": False, "is_active": True}
 # }
 # Auto Delete Timer (seconds)
 AUTO_DEL = 300
 # Admin IDs
-ADMINS = [6497757690, 6103092779]
+ADMINS = [6725874739 , 1018033649]
 # Bot Settings
 DISABLE_BTN = True
 PROTECT = True
