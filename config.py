@@ -26,7 +26,7 @@ FSUBS = [[-1001610198839, True, 10]] # Force Subscription Channels [channel_id, 
 # Database Channel (Primary)
 DB_CHANNEL = -1002759929778   # just put channel id dont add ""
 # Multiple Database Channels (can be set via bot settings)
-# DB_CHANNELS = {
+# DB_CHANNELS = -1002759929778 {
 #     "-1002759929778": {"name": "Primary DB", "is_primary": True, "is_active": True},
 #     "-1001726493524": {"name": "Secondary DB", "is_primary": False, "is_active": True}
 # }
