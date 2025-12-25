@@ -14,35 +14,61 @@ def generate_random_alphanumeric():
     characters = string.ascii_letters + string.digits
     return ''.join(random.choice(characters) for _ in range(8))
 
+
+
 def get_short(url, client):
 
-    # Check if shortner is enabled
+    # Check if shortener is enabled
     shortner_enabled = getattr(client, 'shortner_enabled', True)
     if not shortner_enabled:
-        return url  # Return original URL if shortner is disabled
+        return url
 
-    # Step 2: Check cache
+    # Cache check
     if url in shortened_urls_cache:
         return shortened_urls_cache[url]
 
     try:
         alias = generate_random_alphanumeric()
-        # Use dynamic shortner settings from client if available
-        short_url = getattr(client, 'short_url', SHORT_URL)
-        short_api = getattr(client, 'short_api', SHORT_API)
-        
-        api_url = f"https://{short_url}/api?api={short_api}&url={url}&alias={alias}"
-        response = requests.get(api_url)
-        rjson = response.json()
 
-        if rjson.get("status") == "success" and response.status_code == 200:
-            short_url = rjson.get("shortenedUrl", url)
-            shortened_urls_cache[url] = short_url
-            return short_url
+        # Dynamic shortener config
+        short_domain = getattr(client, 'short_url', SHORT_URL)
+        short_api = getattr(client, 'short_api', SHORT_API)
+
+        api_url = f"https://{short_domain}/api"
+
+        # ---- Primary request ----
+        response = requests.get(
+            api_url,
+            params={
+                "api": short_api,
+                "url": url,
+                "alias": alias
+            },
+            timeout=15
+        )
+
+        if response.status_code != 200:
+            raise Exception(f"HTTP {response.status_code}")
+
+        try:
+            rjson = response.json()
+        except Exception:
+            raise Exception("Invalid JSON response")
+
+        print("Shortener response:", rjson)
+
+        # ---- Universal response parser ----
+        if isinstance(rjson, dict):
+            for key in ("shortenedUrl", "shorturl", "short", "url"):
+                if key in rjson and rjson[key]:
+                    shortened_urls_cache[url] = rjson[key]
+                    return rjson[key]
+
     except Exception as e:
         print(f"[Shortener Error] {e}")
 
-    return url  # fallback
+    # Final fallback
+    return url
 
 #===============================================================#
 
@@ -256,5 +282,6 @@ async def test_shortner(client: Client, query: CallbackQuery):
         msg = f"**❌ ꜱʜᴏʀᴛɴᴇʀ ᴛᴇꜱᴛ ꜰᴀɪʟᴇᴅ!**\n\n**ᴇʀʀᴏʀ:** `{str(e)}`"
     
     await query.message.edit_text(msg, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('◂ ʙᴀᴄᴋ', 'shortner')]]))
+
 
 
