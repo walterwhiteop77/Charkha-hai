@@ -18,64 +18,46 @@ def generate_random_alphanumeric():
 
 
 def get_short(url, client):
-
-    # Shortener toggle
     if not getattr(client, "shortner_enabled", True):
         return url
 
-    # Cache
     if url in shortened_urls_cache:
         return shortened_urls_cache[url]
 
-    short_domain = getattr(client, "short_url", SHORT_URL)
-    short_api = getattr(client, "short_api", SHORT_API)
+    domain = getattr(client, "short_url", SHORT_URL)
+    api_key = getattr(client, "short_api", SHORT_API)
 
-    try:
-        response = requests.get(
-            f"https://{short_domain}/api",
-            params={
-                "api": short_api,
-                "url": url
-            },
-            timeout=15
-        )
+    endpoints = ["/api", "/api.php"]
+    methods = ["get", "post"]
 
-        print("[Shortener RAW]", response.text)
+    for ep in endpoints:
+        for method in methods:
+            try:
+                req = getattr(requests, method)
+                r = req(
+                    f"https://{domain}{ep}",
+                    params={"api": api_key, "url": url} if method == "get" else
+                           {"api": api_key, "url": url},
+                    timeout=15
+                )
 
-        if response.status_code != 200:
-            print("[Shortener] HTTP error:", response.status_code)
-            return url
+                print("[TRY]", method.upper(), ep, "→", r.text)
 
-        try:
-            data = response.json()
-        except Exception:
-            print("[Shortener] Non-JSON response")
-            return url
+                if r.status_code != 200:
+                    continue
 
-        print("[Shortener JSON]", data)
+                data = r.json()
 
-        # ---- UNIVERSAL PARSER ----
-        if isinstance(data, dict):
-
-            # Direct keys
-            for key in ("shortenedUrl", "shorturl", "short", "url"):
-                if key in data and data[key] and data[key] != url:
-                    shortened_urls_cache[url] = data[key]
-                    return data[key]
-
-            # Nested data support
-            if "data" in data and isinstance(data["data"], dict):
                 for key in ("shortenedUrl", "shorturl", "short", "url"):
-                    if key in data["data"] and data["data"][key]:
-                        shortened_urls_cache[url] = data["data"][key]
-                        return data["data"][key]
+                    if key in data and data[key] and data[key] != url:
+                        shortened_urls_cache[url] = data[key]
+                        return data[key]
 
-        print("[Shortener] No short URL found")
-
-    except Exception as e:
-        print("[Shortener Exception]", e)
+            except Exception:
+                continue
 
     return url
+
 
 
 #===============================================================#
@@ -290,6 +272,7 @@ async def test_shortner(client: Client, query: CallbackQuery):
         msg = f"**❌ ꜱʜᴏʀᴛɴᴇʀ ᴛᴇꜱᴛ ꜰᴀɪʟᴇᴅ!**\n\n**ᴇʀʀᴏʀ:** `{str(e)}`"
     
     await query.message.edit_text(msg, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('◂ ʙᴀᴄᴋ', 'shortner')]]))
+
 
 
 
