@@ -17,46 +17,49 @@ def generate_random_alphanumeric():
 
 
 
+import requests
+
 def get_short(url, client):
+
     if not getattr(client, "shortner_enabled", True):
         return url
 
     if url in shortened_urls_cache:
         return shortened_urls_cache[url]
 
-    domain = getattr(client, "short_url", SHORT_URL)
+    raw_domain = getattr(client, "short_url", SHORT_URL)
     api_key = getattr(client, "short_api", SHORT_API)
 
-    endpoints = ["/api", "/api.php"]
-    methods = ["get", "post"]
+    # 🔧 Normalize domain (CRITICAL FIX)
+    domain = raw_domain.replace("https://", "").replace("http://", "").strip("/")
 
-    for ep in endpoints:
-        for method in methods:
-            try:
-                req = getattr(requests, method)
-                r = req(
-                    f"https://{domain}{ep}",
-                    params={"api": api_key, "url": url} if method == "get" else
-                           {"api": api_key, "url": url},
-                    timeout=15
-                )
+    try:
+        r = requests.get(
+            f"https://{domain}/api",
+            params={
+                "api": api_key,
+                "url": url
+            },
+            timeout=15
+        )
 
-                print("[TRY]", method.upper(), ep, "→", r.text)
+        print("[Shortener RAW]", r.text)
 
-                if r.status_code != 200:
-                    continue
+        if r.status_code != 200:
+            return url
 
-                data = r.json()
+        data = r.json()
 
-                for key in ("shortenedUrl", "shorturl", "short", "url"):
-                    if key in data and data[key] and data[key] != url:
-                        shortened_urls_cache[url] = data[key]
-                        return data[key]
+        for key in ("shortenedUrl", "shorturl", "short", "url"):
+            if key in data and data[key] and data[key] != url:
+                shortened_urls_cache[url] = data[key]
+                return data[key]
 
-            except Exception:
-                continue
+    except Exception as e:
+        print("[Shortener Error]", e)
 
     return url
+
 
 
 
@@ -272,6 +275,7 @@ async def test_shortner(client: Client, query: CallbackQuery):
         msg = f"**❌ ꜱʜᴏʀᴛɴᴇʀ ᴛᴇꜱᴛ ꜰᴀɪʟᴇᴅ!**\n\n**ᴇʀʀᴏʀ:** `{str(e)}`"
     
     await query.message.edit_text(msg, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('◂ ʙᴀᴄᴋ', 'shortner')]]))
+
 
 
 
